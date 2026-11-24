@@ -40,19 +40,25 @@ URL にカラーコードを並べると SVG 画像と HTML ページを返す�
 
 ```sh
 bun install
-bun run dev        # wrangler dev (http://localhost:8787)
+bun run dev        # cf dev → http://localhost:8787
+bun run build      # cf build
+bun run validate   # cf build + cf deploy --dry-run (uploads nothing)
 bun test
-bun run typecheck
-bun run lint
-bun run fmt
+bun run check      # typecheck + lint + format check + tests
 ```
 
-Cloudflare CLI setup (no production deploy yet):
+The project uses the new [`cf` CLI](https://developers.cloudflare.com/cf/), not Wrangler directly. `cf` is pinned as a dev dependency, so the global `cf` command runs the project's version.
 
 ```sh
-bunx wrangler login
-bunx wrangler whoami
-bun run deploy     # run this when you actually want production
+cf --version
+cf auth whoami
+cf auth login      # only needed if the token expires
+```
+
+The account is pinned in `cloudflare.config.ts`. Production deploy is intentionally not run yet:
+
+```sh
+bun run deploy     # cf deploy (production)
 ```
 
 Files:
@@ -63,10 +69,13 @@ Files:
 - `src/layouts/index.ts` — layout registry, `renderSvg()`.
 - `src/pages.ts` — server-rendered HTML (landing + palette page).
 - `src/escape.ts`, `src/styles.ts` — HTML escaping and the shared stylesheet.
+- `cloudflare.config.ts` — cf project config (account, worker name, entrypoint).
 - `test/` — parser, renderer, and route tests.
 
 ## Notes
 
+- `cf` 1.0 is in release candidate. For a JavaScript Worker it delegates `dev`/`build`/`deploy` to Wrangler (esbuild), so Wrangler stays installed under the hood; the old `wrangler.jsonc` has been removed.
+- `cf` runs on Node, not Bun. The npm scripts invoke the `cf` binary directly, so this is handled.
 - **SVG only for now.** `og:image` points at the SVG; most crawlers (including X) won't render it. PNG via `@resvg/resvg-wasm` is the next step, plus a bundled font file.
 - Fonts use the system stack. For a consistent image across machines, embed a subset of Inter later.
 - Images are pure functions of the URL, hence `Cache-Control: immutable`; errors are `no-store`.
