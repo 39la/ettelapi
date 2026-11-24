@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { randomPalette, parseColors, slugOf } from "./colors";
 import { DEFAULT_LAYOUT, isLayout, renderErrorSvg, renderSvg } from "./layouts";
-import { renderErrorPage, renderLanding, renderPalettePage } from "./pages";
+import { renderErrorPage, renderLanding, renderPalettePage } from "./views";
 
 const app = new Hono();
 

@@ -11,13 +11,13 @@ URL にカラーコードを並べると SVG 画像と HTML ページを返す�
 
 ## Routes
 
-| Path                | Response                                                     |
-| ------------------- | ------------------------------------------------------------ |
-| `/{colors}.svg`     | SVG (1200 × 630, `immutable` cache)                          |
-| `/{colors}`         | HTML page with swatches, CSS/Tailwind/Markdown/HTML snippets |
-| `/random`           | 302 to a random palette page                                 |
-| `/random.svg`       | 302 to a random palette image                                |
-| `/healthz`          | `ok`                                                         |
+| Path            | Response                                                     |
+| --------------- | ------------------------------------------------------------ |
+| `/{colors}.svg` | SVG (1200 × 630, `immutable` cache)                          |
+| `/{colors}`     | HTML page with swatches, CSS/Tailwind/Markdown/HTML snippets |
+| `/random`       | 302 to a random palette page                                 |
+| `/random.svg`   | 302 to a random palette image                                |
+| `/healthz`      | `ok`                                                         |
 
 - `{colors}`: 1–12 hex colors, 3 or 6 digits, joined with `-`. Case-insensitive, `#` optional.
 - Commas and a leading `%23` are accepted and 301'd to the hyphen form.
@@ -67,8 +67,9 @@ Files:
 - `src/colors.ts` — parsing, RGB/luminance/contrast, random palettes.
 - `src/layouts/` — one file per image layout (`strip`, `cards`, `feature`, `mosaic`, `blobs`, `scale`), plus `shared.ts` for the SVG primitives and `error.ts`.
 - `src/layouts/index.ts` — layout registry, `renderSvg()`.
-- `src/pages.ts` — server-rendered HTML (landing + palette page).
-- `src/escape.ts`, `src/styles.css` — HTML escaping and the stylesheet (imported as text).
+- `src/views/` — Hono JSX views (document shell, palette page, landing, error page).
+- `src/escape.ts` — XML/HTML escaping for the SVG generators.
+- `src/styles.css` — layered CSS with design tokens; imported as text.
 - `cloudflare.config.ts` — cf project config (account, worker name, entrypoint).
 - `wrangler.config.ts` — bundler settings only; the `Text` rule inlines `styles.css` into the Worker.
 - `test/` — parser, renderer, and route tests.
@@ -76,7 +77,8 @@ Files:
 ## Notes
 
 - `cf` 1.0 is in release candidate. For a JavaScript Worker it delegates `dev`/`build`/`deploy` to Wrangler (esbuild), so Wrangler stays installed under the hood; the old `wrangler.jsonc` has been removed.
-- `src/styles.css` is a real stylesheet, formatted by oxfmt, and imported as text via the `Text` module rule in `wrangler.config.ts`.
+- `src/styles.css` is a real stylesheet, formatted by oxfmt, and imported as text via the `Text` module rule in `wrangler.config.ts`. It uses `@layer` and design tokens rather than raw pixel values.
+- HTML is rendered with Hono JSX (`hono/jsx`); the layout of the JSX runtime is set in `tsconfig.json`.
 - `cf` runs on Node, not Bun. The npm scripts invoke the `cf` binary directly, so this is handled.
 - **SVG only for now.** `og:image` points at the SVG; most crawlers (including X) won't render it. PNG via `@resvg/resvg-wasm` is the next step, plus a bundled font file.
 - Fonts use the system stack. For a consistent image across machines, embed a subset of Inter later.

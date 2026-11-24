@@ -4,4 +4,5 @@
   Do not call Wrangler directly; it is only cf's bundler.
 - Before finishing: `bun run check` (typecheck, oxlint, oxfmt --check, tests).
 - Layout renderers live in `src/layouts/<layout>.ts`; register changes in `src/layouts/index.ts`.
+- HTML views live in `src/views/*.tsx` and use Hono JSX. Styles are in `src/styles.css` (layers + tokens), imported as text.
 - No production deploy without explicit confirmation.

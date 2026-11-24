@@ -75,8 +75,18 @@ describe("page route", () => {
     const res = await get("/");
     expect(res.status).toBe(200);
     const body = await res.text();
+    expect(body.startsWith("<!doctype html>")).toBe(true);
     expect(body).toContain("Put colors");
     expect(body).toContain('method="get"');
+    expect(body).toContain('src="/f94144-f3722c-f8961e-f9c74f-90be6d-577590.svg?layout=cards"');
+  });
+
+  test("escapes user input in HTML", async () => {
+    const res = await get("/?colors=%3Cscript%3Ealert(1)%3C/script%3E");
+    expect(res.status).toBe(400);
+    const body = await res.text();
+    expect(body).toContain("&lt;script&gt;");
+    expect(body).not.toContain("<script>alert");
   });
 
   test("redirects a valid composer submission", async () => {
