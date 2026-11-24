@@ -1,0 +1,28 @@
+# dependencies
+node_modules
+
+# build output
+dist
+.tmp
+*.tgz
+
+# generated mock images are committed for the gallery
+!mockups/out/
+
+# coverage / logs
+coverage
+*.lcov
+logs
+_.log
+
+# env
+.env
+.env.*
+
+# caches / editors
+.wrangler
+.eslintcache
+.cache
+*.tsbuildinfo
+.idea
+.DS_Store

@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "palette",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "account_id": "f1951e895caac3e3bbcc1b5bcfe1d74a",
+  "observability": {
+    "enabled": true
+  }
+}
