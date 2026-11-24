@@ -1,24 +1,52 @@
 import { Hono } from "hono";
+import { secureHeaders } from "hono/secure-headers";
 import { randomPalette, parseColors, slugOf } from "./colors";
 import { DEFAULT_LAYOUT, isLayout, renderErrorSvg, renderSvg } from "./layouts";
 import { renderErrorPage, renderLanding, renderPalettePage } from "./views";
 
 const app = new Hono();
 
+const SECURITY_OPTIONS = {
+  crossOriginResourcePolicy: "cross-origin",
+  referrerPolicy: "strict-origin-when-cross-origin",
+} as const;
+
+const HTML_CSP = {
+  defaultSrc: ["'self'"],
+  imgSrc: ["'self'", "data:"],
+  styleSrc: ["'unsafe-inline'"],
+  scriptSrc: ["'unsafe-inline'"],
+  baseUri: ["'none'"],
+  formAction: ["'self'"],
+};
+
+const SVG_CSP = {
+  defaultSrc: ["'none'"],
+  styleSrc: ["'unsafe-inline'"],
+};
+
+const htmlSecurity = secureHeaders({
+  ...SECURITY_OPTIONS,
+  contentSecurityPolicy: HTML_CSP,
+});
+
+const svgSecurity = secureHeaders({
+  ...SECURITY_OPTIONS,
+  contentSecurityPolicy: SVG_CSP,
+});
+
+app.use((c, next) =>
+  c.req.path.toLowerCase().endsWith(".svg") ? svgSecurity(c, next) : htmlSecurity(c, next),
+);
+
 const SVG_HEADERS = (immutable: boolean) => ({
   "Content-Type": "image/svg+xml; charset=utf-8",
   "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-store",
-  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
-  "X-Content-Type-Options": "nosniff",
 });
 
 const HTML_HEADERS = (cache: "public" | "none" = "public") => ({
   "Content-Type": "text/html; charset=utf-8",
   "Cache-Control": cache === "public" ? "public, max-age=300" : "no-store",
-  "Content-Security-Policy":
-    "default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'self'",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "X-Content-Type-Options": "nosniff",
 });
 
 const svgError = (message: string, status = 400) =>

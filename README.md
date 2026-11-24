@@ -83,6 +83,6 @@ Files:
 - **SVG only for now.** `og:image` points at the SVG; most crawlers (including X) won't render it. PNG via `@resvg/resvg-wasm` is the next step, plus a bundled font file.
 - Fonts use the system stack. For a consistent image across machines, embed a subset of Inter later.
 - Images are pure functions of the URL, hence `Cache-Control: immutable`; errors are `no-store`.
-- SVG responses carry `CSP: default-src 'none'` and `X-Content-Type-Options: nosniff`.
+- Security headers come from Hono's `secureHeaders` middleware. SVG gets a stricter CSP (`default-src 'none'`) than HTML, and images use `Cross-Origin-Resource-Policy: cross-origin` so they can be embedded elsewhere.
 - No database, KV, or R2. Random palettes are stateless.
 - Design exploration lives in [`mockups/`](mockups/) (`node mockups/generate.mjs`, then open `mockups/index.html`). URL rationale is in [`docs/url-design.md`](docs/url-design.md).

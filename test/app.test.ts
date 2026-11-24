@@ -10,7 +10,10 @@ describe("image route", () => {
     expect(res.headers.get("content-type")).toContain("image/svg+xml");
     expect(res.headers.get("cache-control")).toContain("immutable");
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(res.headers.get("content-security-policy")).toContain("default-src 'none'");
+    expect(res.headers.get("cross-origin-resource-policy")).toBe("cross-origin");
+    expect(res.headers.get("content-security-policy")).toBe(
+      "default-src 'none'; style-src 'unsafe-inline'",
+    );
     const body = await res.text();
     expect(body).toContain('fill="#f94144"');
     expect(body).toContain('fill="#f3722c"');
@@ -63,6 +66,9 @@ describe("page route", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const body = await res.text();
+    expect(res.headers.get("content-security-policy")).toContain("default-src 'self'");
+    expect(res.headers.get("content-security-policy")).toContain("img-src 'self' data:");
+    expect(res.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(body).toContain("2-color palette");
     expect(body).toContain("Cards");
     expect(body).toContain("data-copy=");
@@ -112,6 +118,11 @@ describe("page route", () => {
     const missing = await get("/a/b");
     expect(missing.status).toBe(404);
     expect(missing.headers.get("content-type")).toContain("text/html");
+
+    const missingSvg = await get("/a/b.svg");
+    expect(missingSvg.status).toBe(404);
+    expect(missingSvg.headers.get("content-type")).toContain("image/svg+xml");
+    expect(missingSvg.headers.get("content-security-policy")).toContain("default-src 'none'");
 
     const png = await get("/ff3b30.png");
     expect(png.status).toBe(404);
