@@ -10,7 +10,7 @@
     "oxfmt": "^0.80.0",
     "oxlint": "^1.95.0",
     "typescript": "^7.0.2",
-    "wrangler": "^4.167.0"
+    "wrangler": "^4.168.0"
   },
   "dependencies": {
     "hono": "^4.13.21"
@@ -23,9 +23,9 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "mock": "node mockups/generate.mjs",
-    "lint": "oxlint src test cloudflare.config.ts",
-    "fmt": "oxfmt src test cloudflare.config.ts",
-    "fmt:check": "oxfmt --check src test cloudflare.config.ts",
+    "lint": "oxlint src test cloudflare.config.ts wrangler.config.ts",
+    "fmt": "oxfmt src test cloudflare.config.ts wrangler.config.ts",
+    "fmt:check": "oxfmt --check src test cloudflare.config.ts wrangler.config.ts",
     "check": "bun run typecheck && bun run lint && bun run fmt:check && bun test"
   }
 }

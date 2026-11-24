@@ -68,13 +68,15 @@ Files:
 - `src/layouts/` — one file per image layout (`strip`, `cards`, `feature`, `mosaic`, `blobs`, `scale`), plus `shared.ts` for the SVG primitives and `error.ts`.
 - `src/layouts/index.ts` — layout registry, `renderSvg()`.
 - `src/pages.ts` — server-rendered HTML (landing + palette page).
-- `src/escape.ts`, `src/styles.ts` — HTML escaping and the shared stylesheet.
+- `src/escape.ts`, `src/styles.css` — HTML escaping and the stylesheet (imported as text).
 - `cloudflare.config.ts` — cf project config (account, worker name, entrypoint).
+- `wrangler.config.ts` — bundler settings only; the `Text` rule inlines `styles.css` into the Worker.
 - `test/` — parser, renderer, and route tests.
 
 ## Notes
 
 - `cf` 1.0 is in release candidate. For a JavaScript Worker it delegates `dev`/`build`/`deploy` to Wrangler (esbuild), so Wrangler stays installed under the hood; the old `wrangler.jsonc` has been removed.
+- `src/styles.css` is a real stylesheet, formatted by oxfmt, and imported as text via the `Text` module rule in `wrangler.config.ts`.
 - `cf` runs on Node, not Bun. The npm scripts invoke the `cf` binary directly, so this is handled.
 - **SVG only for now.** `og:image` points at the SVG; most crawlers (including X) won't render it. PNG via `@resvg/resvg-wasm` is the next step, plus a bundled font file.
 - Fonts use the system stack. For a consistent image across machines, embed a subset of Inter later.

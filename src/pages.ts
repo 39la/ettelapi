@@ -1,7 +1,7 @@
 import { contrastRatio, labelOf, rgbOf, slugOf } from "./colors";
 import { esc } from "./escape";
 import { DEFAULT_LAYOUT, layoutInfo, LAYOUTS, type Layout } from "./layouts";
-import { CSS } from "./styles";
+import CSS from "./styles.css";
 
 const SAMPLE = ["#f94144", "#f3722c", "#f8961e", "#f9c74f", "#90be6d", "#577590"];
 
