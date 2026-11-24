@@ -72,30 +72,30 @@ aliases:    /p/{hex}/{hex}.svg      → 301
 
 ## ルート一覧（最終形の提案）
 
-| Path                    | Response                                |
-| ----------------------- | --------------------------------------- |
-| `/`                     | ランディング（作成 UI・例）             |
-| `/{colors}`             | HTML ページ（プレビュー＋コピー＋埋込） |
-| `/{colors}.svg`         | SVG                                     |
-| `/{colors}.png`         | PNG（resvg-wasm。OG 用）                |
-| `/{colors}.json`        | 色のメタデータ（rgb / hsl / contrast）  |
-| `/random`               | ランダムパレットの HTML                 |
-| `/random.svg`           | ランダムパレットの SVG                  |
-| `/api/palette?colors=`  | JSON API（任意）                        |
-| `/healthz`              | `200 ok`                                |
+| Path                   | Response                                |
+| ---------------------- | --------------------------------------- |
+| `/`                    | ランディング（作成 UI・例）             |
+| `/{colors}`            | HTML ページ（プレビュー＋コピー＋埋込） |
+| `/{colors}.svg`        | SVG                                     |
+| `/{colors}.png`        | PNG（resvg-wasm。OG 用）                |
+| `/{colors}.json`       | 色のメタデータ（rgb / hsl / contrast）  |
+| `/random`              | ランダムパレットの HTML                 |
+| `/random.svg`          | ランダムパレットの SVG                  |
+| `/api/palette?colors=` | JSON API（任意）                        |
+| `/healthz`             | `200 ok`                                |
 
 `/{colors}` の HTML は `/{colors}.png` を `og:image` に指定する。**SVG は OG 非対応のクローラが多い**ので、共有用は PNG が必須。
 
 ## クエリパラメータ
 
-| Param       | Values                                              | Default              |
-| ----------- | --------------------------------------------------- | -------------------- |
-| `layout`    | `strip` `cards` `feature` `mosaic` `blobs` `scale`  | `strip`              |
-| `w` / `h`   | 16–4096                                             | `1200` / `630`       |
-| `labels`    | `hex` `none`                                        | `hex`                |
-| `theme`     | `light` `dark`                                      | layout ごとに固定    |
-| `title`     | 任意テキスト（80 文字まで、XML エスケープ）         | なし                 |
-| `watermark` | `0` `1`                                             | `1`（URL を小さく）  |
+| Param       | Values                                             | Default             |
+| ----------- | -------------------------------------------------- | ------------------- |
+| `layout`    | `strip` `cards` `feature` `mosaic` `blobs` `scale` | `strip`             |
+| `w` / `h`   | 16–4096                                            | `1200` / `630`      |
+| `labels`    | `hex` `none`                                       | `hex`               |
+| `theme`     | `light` `dark`                                     | layout ごとに固定   |
+| `title`     | 任意テキスト（80 文字まで、XML エスケープ）        | なし                |
+| `watermark` | `0` `1`                                            | `1`（URL を小さく） |
 
 `layout=scale` は 1 色のときだけ有効（複数色なら 400）。`layout` 省略時は常に `strip`。
 

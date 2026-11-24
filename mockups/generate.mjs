@@ -10,10 +10,8 @@ const OUT = join(HERE, "out");
 const W = 1200;
 const H = 630;
 
-const SANS =
-  "Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
-const MONO =
-  "'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace";
+const SANS = "Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
+const MONO = "'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace";
 
 /* ---------------------------------------------------------------- color ---- */
 
@@ -26,7 +24,11 @@ const rgbOf = (hex) => [
 const toHex = (rgb) =>
   "#" +
   rgb
-    .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"))
+    .map((v) =>
+      Math.max(0, Math.min(255, Math.round(v)))
+        .toString(16)
+        .padStart(2, "0"),
+    )
     .join("");
 
 const mix = (a, b, t) => {
@@ -55,7 +57,11 @@ const ink = (hex) => (relLum(hex) > 0.06 ? hex : mix(hex, "#ffffff", 0.35));
 /* ----------------------------------------------------------------- text ---- */
 
 const esc = (s) =>
-  String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 
 const text = ({
   x,
@@ -84,7 +90,7 @@ const labelFor = (hex) => hex.slice(1).toUpperCase();
 
 const doc = ({ title, bg, body }) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(
-    title
+    title,
   )}"><title>${esc(title)}</title>` +
   (bg ? `<rect width="${W}" height="${H}" fill="${bg}"/>` : "") +
   body +
@@ -105,13 +111,48 @@ function strip(colors) {
     g += `<rect x="${x}" y="0" width="${bandW + 0.6}" height="${H}" fill="${c}"/>`;
 
     if (n === 1) {
-      g += text({ x: 72, y: 96, s: "PALETTE / 01", fs: 13, fill: fg, ls: 3, opacity: 0.6, family: MONO });
+      g += text({
+        x: 72,
+        y: 96,
+        s: "PALETTE / 01",
+        fs: 13,
+        fill: fg,
+        ls: 3,
+        opacity: 0.6,
+        family: MONO,
+      });
       const big = fit("#" + hex, W - 144, 190, 0.62);
       g += text({ x: 68, y: H - 100, s: "#" + hex, fs: big, fill: fg, weight: 500 });
-      g += text({ x: 72, y: H - 48, s: "1 COLOR", fs: 13, fill: fg, ls: 3, opacity: 0.6, family: MONO });
-      g += text({ x: W - 72, y: H - 48, s: "palette.example/" + hex, fs: 13, fill: fg, opacity: 0.6, anchor: "end" });
+      g += text({
+        x: 72,
+        y: H - 48,
+        s: "1 COLOR",
+        fs: 13,
+        fill: fg,
+        ls: 3,
+        opacity: 0.6,
+        family: MONO,
+      });
+      g += text({
+        x: W - 72,
+        y: H - 48,
+        s: "palette.example/" + hex,
+        fs: 13,
+        fill: fg,
+        opacity: 0.6,
+        anchor: "end",
+      });
     } else {
-      g += text({ x: x + 20, y: 44, s: String(i + 1).padStart(2, "0"), fs: 12, fill: fg, ls: 2, opacity: 0.55, family: MONO });
+      g += text({
+        x: x + 20,
+        y: 44,
+        s: String(i + 1).padStart(2, "0"),
+        fs: 12,
+        fill: fg,
+        ls: 2,
+        opacity: 0.55,
+        family: MONO,
+      });
       const fs = fit(hex, bandW - 40, Math.min(22, bandW * 0.1), 0.6);
       g += text({ x: x + 20, y: H - 26, s: hex, fs, fill: fg, ls: Math.max(0.5, fs * 0.05) });
     }
@@ -131,8 +172,26 @@ function cards(colors) {
   const bg = "#F4F3EF";
 
   let g = `<rect x="${pad}" y="72" width="6" height="6" rx="1" fill="#111" opacity="0.8"/>`;
-  g += text({ x: pad + 16, y: 80, s: "PALETTE", fs: 13, fill: "#111", ls: 3.5, weight: 600, family: SANS });
-  g += text({ x: W - pad, y: 80, s: `${n} ${n === 1 ? "COLOR" : "COLORS"}`, fs: 12, fill: "#111", ls: 2, opacity: 0.45, anchor: "end" });
+  g += text({
+    x: pad + 16,
+    y: 80,
+    s: "PALETTE",
+    fs: 13,
+    fill: "#111",
+    ls: 3.5,
+    weight: 600,
+    family: SANS,
+  });
+  g += text({
+    x: W - pad,
+    y: 80,
+    s: `${n} ${n === 1 ? "COLOR" : "COLORS"}`,
+    fs: 12,
+    fill: "#111",
+    ls: 2,
+    opacity: 0.45,
+    anchor: "end",
+  });
 
   if (n === 1) {
     const cw = Math.min(560, W - pad * 2);
@@ -140,8 +199,24 @@ function cards(colors) {
     const ch = cardH;
     g += `<rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="22" fill="${colors[0]}"/>`;
     const fg = contrast(colors[0]);
-    g += text({ x: cx + 40, y: top + ch - 40, s: "#" + labelFor(colors[0]).toLowerCase(), fs: 38, fill: fg, weight: 500 });
-    g += text({ x: W / 2, y: top + ch + 34, s: "palette.example/" + labelFor(colors[0]).toLowerCase(), fs: 13, fill: "#111", opacity: 0.45, anchor: "middle", ls: 1 });
+    g += text({
+      x: cx + 40,
+      y: top + ch - 40,
+      s: "#" + labelFor(colors[0]).toLowerCase(),
+      fs: 38,
+      fill: fg,
+      weight: 500,
+    });
+    g += text({
+      x: W / 2,
+      y: top + ch + 34,
+      s: "palette.example/" + labelFor(colors[0]).toLowerCase(),
+      fs: 13,
+      fill: "#111",
+      opacity: 0.45,
+      anchor: "middle",
+      ls: 1,
+    });
     return doc({ title: "palette card", bg, body: g });
   }
 
@@ -150,12 +225,43 @@ function cards(colors) {
     const x = pad + i * (cw + gap);
     const fg = contrast(c);
     g += `<rect x="${x}" y="${top}" width="${cw}" height="${cardH}" rx="16" fill="${c}"/>`;
-    g += text({ x: x + 14, y: top + 26, s: String(i + 1).padStart(2, "0"), fs: 11, fill: fg, ls: 1.5, opacity: 0.5 });
+    g += text({
+      x: x + 14,
+      y: top + 26,
+      s: String(i + 1).padStart(2, "0"),
+      fs: 11,
+      fill: fg,
+      ls: 1.5,
+      opacity: 0.5,
+    });
     const fs = fit(labelFor(c), cw - 28, 15, 0.6);
-    g += text({ x: x + cw / 2, y: top + cardH + 30, s: labelFor(c), fs, fill: "#111", opacity: 0.6, anchor: "middle", ls: 0.8 });
+    g += text({
+      x: x + cw / 2,
+      y: top + cardH + 30,
+      s: labelFor(c),
+      fs,
+      fill: "#111",
+      opacity: 0.6,
+      anchor: "middle",
+      ls: 0.8,
+    });
   });
 
-  g += text({ x: W - pad, y: H - 16, s: "palette.example/" + colors.map(labelFor).map((s) => s.toLowerCase()).join("-"), fs: 11, fill: "#111", opacity: 0.35, anchor: "end", ls: 0.5 });
+  g += text({
+    x: W - pad,
+    y: H - 16,
+    s:
+      "palette.example/" +
+      colors
+        .map(labelFor)
+        .map((s) => s.toLowerCase())
+        .join("-"),
+    fs: 11,
+    fill: "#111",
+    opacity: 0.35,
+    anchor: "end",
+    ls: 0.5,
+  });
 
   return doc({ title: "palette cards", bg, body: g });
 }
@@ -166,7 +272,9 @@ function feature(colors) {
   const base = colors[0];
   const rest = colors.slice(1);
   const showTints = rest.length === 0;
-  const items = showTints ? [0.85, 0.65, 0.45, 0.25, 0.1].map((t) => mix(base, "#ffffff", t)) : rest;
+  const items = showTints
+    ? [0.85, 0.65, 0.45, 0.25, 0.1].map((t) => mix(base, "#ffffff", t))
+    : rest;
 
   let g = `<rect x="0" y="0" width="${split + 1}" height="${H}" fill="${base}"/>`;
   g += `<rect x="${split}" y="0" width="${W - split}" height="${H}" fill="#101012"/>`;
@@ -175,21 +283,61 @@ function feature(colors) {
   g += text({ x: 56, y: 68, s: "FEATURED", fs: 12, fill: fg, ls: 3.5, opacity: 0.65 });
   const big = fit("#" + labelFor(base), split - 112, 92, 0.62);
   g += text({ x: 52, y: H - 64, s: "#" + labelFor(base), fs: big, fill: fg, weight: 500 });
-  g += text({ x: 56, y: H - 30, s: "palette.example/" + labelFor(base).toLowerCase(), fs: 12, fill: fg, opacity: 0.55 });
+  g += text({
+    x: 56,
+    y: H - 30,
+    s: "palette.example/" + labelFor(base).toLowerCase(),
+    fs: 12,
+    fill: fg,
+    opacity: 0.55,
+  });
 
   const padX = split + 52;
   const padTop = 76;
   const padBottom = 56;
   const rowH = (H - padTop - padBottom) / items.length;
-  g += text({ x: padX, y: 56, s: showTints ? "TINTS" : "PALETTE", fs: 12, fill: "#ffffff", ls: 3.5, opacity: 0.4 });
-  g += text({ x: W - 52, y: 56, s: `${colors.length} ${colors.length === 1 ? "COLOR" : "COLORS"}`, fs: 12, fill: "#ffffff", ls: 2, opacity: 0.3, anchor: "end" });
+  g += text({
+    x: padX,
+    y: 56,
+    s: showTints ? "TINTS" : "PALETTE",
+    fs: 12,
+    fill: "#ffffff",
+    ls: 3.5,
+    opacity: 0.4,
+  });
+  g += text({
+    x: W - 52,
+    y: 56,
+    s: `${colors.length} ${colors.length === 1 ? "COLOR" : "COLORS"}`,
+    fs: 12,
+    fill: "#ffffff",
+    ls: 2,
+    opacity: 0.3,
+    anchor: "end",
+  });
 
   items.forEach((c, i) => {
     const cy = padTop + rowH * i + rowH / 2;
     const chip = Math.min(52, rowH - 18);
     g += `<rect x="${padX}" y="${cy - chip / 2}" width="${chip}" height="${chip}" rx="10" fill="${c}"/>`;
-    g += text({ x: padX + chip + 20, y: cy + 5, s: "#" + labelFor(c).toLowerCase(), fs: 16, fill: "#ffffff", opacity: 0.9 });
-    g += text({ x: W - 52, y: cy + 5, s: showTints ? `T${String(i + 1).padStart(2, "0")}` : String(i + 2).padStart(2, "0"), fs: 12, fill: "#ffffff", opacity: 0.3, anchor: "end", ls: 1 });
+    g += text({
+      x: padX + chip + 20,
+      y: cy + 5,
+      s: "#" + labelFor(c).toLowerCase(),
+      fs: 16,
+      fill: "#ffffff",
+      opacity: 0.9,
+    });
+    g += text({
+      x: W - 52,
+      y: cy + 5,
+      s: showTints ? `T${String(i + 1).padStart(2, "0")}` : String(i + 2).padStart(2, "0"),
+      fs: 12,
+      fill: "#ffffff",
+      opacity: 0.3,
+      anchor: "end",
+      ls: 1,
+    });
   });
 
   return doc({ title: "palette feature", body: g });
@@ -215,7 +363,13 @@ function mosaic(colors) {
     for (let i = 0; i < 4; i++) {
       const r = Math.floor(i / 2);
       const c = i % 2;
-      cells.push({ x: pad + leftW + gap + c * (rightW2 + gap), y: pad + r * (cellH + gap), w: rightW2, h: cellH, i: i + 1 });
+      cells.push({
+        x: pad + leftW + gap + c * (rightW2 + gap),
+        y: pad + r * (cellH + gap),
+        w: rightW2,
+        h: cellH,
+        i: i + 1,
+      });
     }
   } else {
     const cols = n <= 3 ? n : n <= 4 ? 2 : n <= 6 ? 3 : 4;
@@ -236,7 +390,15 @@ function mosaic(colors) {
     const c = colors[i];
     const fg = contrast(c);
     g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" fill="${c}"/>`;
-    g += text({ x: x + 18, y: y + 28, s: String(i + 1).padStart(2, "0"), fs: 11, fill: fg, ls: 1.5, opacity: 0.5 });
+    g += text({
+      x: x + 18,
+      y: y + 28,
+      s: String(i + 1).padStart(2, "0"),
+      fs: 11,
+      fill: fg,
+      ls: 1.5,
+      opacity: 0.5,
+    });
     g += text({ x: x + 18, y: y + h - 18, s: labelFor(c), fs: 15, fill: fg, ls: 0.5 });
   });
 
@@ -248,15 +410,50 @@ function blobs(colors) {
   const n = colors.length;
   const bg = "#FBFAF7";
   let g = "";
-  g += text({ x: 56, y: 68, s: "PALETTE", fs: 13, fill: "#111", ls: 3.5, opacity: 0.55, weight: 600, family: SANS });
+  g += text({
+    x: 56,
+    y: 68,
+    s: "PALETTE",
+    fs: 13,
+    fill: "#111",
+    ls: 3.5,
+    opacity: 0.55,
+    weight: 600,
+    family: SANS,
+  });
 
   if (n === 1) {
     const c = colors[0];
     const r = 190;
     g += `<circle cx="${W / 2}" cy="${H / 2 - 20}" r="${r}" fill="${c}"/>`;
-    g += text({ x: W / 2, y: H / 2 - 8, s: "#" + labelFor(c), fs: 40, fill: contrast(c), anchor: "middle", weight: 500 });
-    g += text({ x: W / 2, y: H / 2 + 30, s: "1 COLOR", fs: 12, fill: contrast(c), anchor: "middle", ls: 3, opacity: 0.6 });
-    g += text({ x: W - 56, y: H - 32, s: "palette.example/ff3b30", fs: 11, fill: "#111", opacity: 0.3, anchor: "end" });
+    g += text({
+      x: W / 2,
+      y: H / 2 - 8,
+      s: "#" + labelFor(c),
+      fs: 40,
+      fill: contrast(c),
+      anchor: "middle",
+      weight: 500,
+    });
+    g += text({
+      x: W / 2,
+      y: H / 2 + 30,
+      s: "1 COLOR",
+      fs: 12,
+      fill: contrast(c),
+      anchor: "middle",
+      ls: 3,
+      opacity: 0.6,
+    });
+    g += text({
+      x: W - 56,
+      y: H - 32,
+      s: "palette.example/ff3b30",
+      fs: 11,
+      fill: "#111",
+      opacity: 0.3,
+      anchor: "end",
+    });
     return doc({ title: "palette circles", bg, body: g });
   }
 
@@ -269,12 +466,43 @@ function blobs(colors) {
     const cx = start + spacing * i;
     const cy = H * 0.47 + (i % 2 === 0 ? -14 : 14);
     g += `<circle cx="${cx.toFixed(1)}" cy="${cy}" r="${r.toFixed(1)}" fill="${c}" style="mix-blend-mode:multiply"/>`;
-    g += text({ x: cx.toFixed(1), y: (cy + r + 46).toFixed(1), s: labelFor(c), fs: 13, fill: "#111", opacity: 0.65, anchor: "middle", ls: 0.8 });
-    g += text({ x: cx.toFixed(1), y: (cy + r + 66).toFixed(1), s: String(i + 1).padStart(2, "0"), fs: 10, fill: "#111", opacity: 0.3, anchor: "middle", ls: 2 });
+    g += text({
+      x: cx.toFixed(1),
+      y: (cy + r + 46).toFixed(1),
+      s: labelFor(c),
+      fs: 13,
+      fill: "#111",
+      opacity: 0.65,
+      anchor: "middle",
+      ls: 0.8,
+    });
+    g += text({
+      x: cx.toFixed(1),
+      y: (cy + r + 66).toFixed(1),
+      s: String(i + 1).padStart(2, "0"),
+      fs: 10,
+      fill: "#111",
+      opacity: 0.3,
+      anchor: "middle",
+      ls: 2,
+    });
   });
 
   g += text({ x: 56, y: H - 32, s: `${n} COLORS`, fs: 11, fill: "#111", ls: 2.5, opacity: 0.3 });
-  g += text({ x: W - 56, y: H - 32, s: "palette.example/" + colors.map(labelFor).map((s) => s.toLowerCase()).join("-"), fs: 11, fill: "#111", opacity: 0.3, anchor: "end" });
+  g += text({
+    x: W - 56,
+    y: H - 32,
+    s:
+      "palette.example/" +
+      colors
+        .map(labelFor)
+        .map((s) => s.toLowerCase())
+        .join("-"),
+    fs: 11,
+    fill: "#111",
+    opacity: 0.3,
+    anchor: "end",
+  });
 
   return doc({ title: "palette circles", bg, body: g });
 }
@@ -284,16 +512,27 @@ function scale(colors) {
   const base = colors[0];
   const top = 286;
   const steps = [];
-  for (let i = 0; i < 5; i++) steps.push({ c: mix(base, "#ffffff", 0.9 - i * 0.18), tag: `T${i + 1}` });
+  for (let i = 0; i < 5; i++)
+    steps.push({ c: mix(base, "#ffffff", 0.9 - i * 0.18), tag: `T${i + 1}` });
   steps.push({ c: base, tag: "BASE" });
-  for (let i = 0; i < 5; i++) steps.push({ c: mix(base, "#000000", 0.12 + i * 0.16), tag: `S${i + 1}` });
+  for (let i = 0; i < 5; i++)
+    steps.push({ c: mix(base, "#000000", 0.12 + i * 0.16), tag: `S${i + 1}` });
 
   let g = `<rect x="0" y="0" width="${W}" height="${top}" fill="${base}"/>`;
   const fg = contrast(base);
   g += text({ x: 56, y: 66, s: "COLOR / SCALE", fs: 12, fill: fg, ls: 3.5, opacity: 0.65 });
   const big = fit("#" + labelFor(base), W - 112, 84, 0.62);
   g += text({ x: 52, y: top - 52, s: "#" + labelFor(base), fs: big, fill: fg, weight: 500 });
-  g += text({ x: W - 56, y: top - 56, s: "TINTS → SHADES", fs: 12, fill: fg, ls: 2.5, opacity: 0.6, anchor: "end" });
+  g += text({
+    x: W - 56,
+    y: top - 56,
+    s: "TINTS → SHADES",
+    fs: 12,
+    fill: fg,
+    ls: 2.5,
+    opacity: 0.6,
+    anchor: "end",
+  });
 
   const stepW = W / steps.length;
   steps.forEach(({ c, tag }, i) => {
@@ -310,19 +549,49 @@ function scale(colors) {
 /* ---------------------------------------------------------------- build ---- */
 
 const PALETTES = {
-  "1": ["#FF3B30"],
-  "4": ["#264653", "#2A9D8F", "#E9C46A", "#F4A261"],
-  "5": ["#03071E", "#370617", "#6A040F", "#D00000", "#FFBA08"],
-  "6": ["#F94144", "#F3722C", "#F8961E", "#F9C74F", "#90BE6D", "#577590"],
+  1: ["#FF3B30"],
+  4: ["#264653", "#2A9D8F", "#E9C46A", "#F4A261"],
+  5: ["#03071E", "#370617", "#6A040F", "#D00000", "#FFBA08"],
+  6: ["#F94144", "#F3722C", "#F8961E", "#F9C74F", "#90BE6D", "#577590"],
 };
 
 const DESIGNS = [
-  { id: "strip", fn: strip, name: "01 / Bands", note: "Full-bleed equal bands. Predictable for any count; the safe default." },
-  { id: "cards", fn: cards, name: "02 / Cards", note: "Paper background, floating swatches. Warmer and more editorial." },
-  { id: "feature", fn: feature, name: "03 / Featured", note: "One hero color + side list. Strongest at 1–2 colors." },
-  { id: "mosaic", fn: mosaic, name: "04 / Bento", note: "Gap grid. Best from 4 colors up; 5 uses a bento layout." },
-  { id: "blobs", fn: blobs, name: "05 / Circles", note: "Overlapping circles with multiply. Playful, 3–6 colors." },
-  { id: "scale", fn: scale, name: "06 / Scale", note: "Single-color detail: base + tints/shades. Only used at n=1." },
+  {
+    id: "strip",
+    fn: strip,
+    name: "01 / Bands",
+    note: "Full-bleed equal bands. Predictable for any count; the safe default.",
+  },
+  {
+    id: "cards",
+    fn: cards,
+    name: "02 / Cards",
+    note: "Paper background, floating swatches. Warmer and more editorial.",
+  },
+  {
+    id: "feature",
+    fn: feature,
+    name: "03 / Featured",
+    note: "One hero color + side list. Strongest at 1–2 colors.",
+  },
+  {
+    id: "mosaic",
+    fn: mosaic,
+    name: "04 / Bento",
+    note: "Gap grid. Best from 4 colors up; 5 uses a bento layout.",
+  },
+  {
+    id: "blobs",
+    fn: blobs,
+    name: "05 / Circles",
+    note: "Overlapping circles with multiply. Playful, 3–6 colors.",
+  },
+  {
+    id: "scale",
+    fn: scale,
+    name: "06 / Scale",
+    note: "Single-color detail: base + tints/shades. Only used at n=1.",
+  },
 ];
 
 const files = [];
@@ -608,11 +877,36 @@ const scaleShot = `<section id="scale">
 </section>`;
 
 const routes = [
-  ["A", "Hyphen path + extension", "<code>/ff3b30-f94144-577590.svg</code>", "Short, paste-safe, no escaping. Canonical pick."],
-  ["B", "Slash segments", "<code>/p/ff3b30/f94144/577590.svg</code>", "Robust parsing, but long and noisy."],
-  ["C", "Comma path", "<code>/ff3b30,f94144,577590.svg</code>", "Prettiest, but clients often escape <code>,</code> to <code>%2C</code>."],
-  ["D", "Query only", "<code>/palette?c=ff3b30,f94144&format=svg</code>", "Flexible, but the URL doesn't read as an image."],
-  ["E", "Hybrid (A + aliases)", "<code>/ff3b30-f94144.svg</code>", "Canonical A, 301 the others. HTML at the extension-less URL."],
+  [
+    "A",
+    "Hyphen path + extension",
+    "<code>/ff3b30-f94144-577590.svg</code>",
+    "Short, paste-safe, no escaping. Canonical pick.",
+  ],
+  [
+    "B",
+    "Slash segments",
+    "<code>/p/ff3b30/f94144/577590.svg</code>",
+    "Robust parsing, but long and noisy.",
+  ],
+  [
+    "C",
+    "Comma path",
+    "<code>/ff3b30,f94144,577590.svg</code>",
+    "Prettiest, but clients often escape <code>,</code> to <code>%2C</code>.",
+  ],
+  [
+    "D",
+    "Query only",
+    "<code>/palette?c=ff3b30,f94144&format=svg</code>",
+    "Flexible, but the URL doesn't read as an image.",
+  ],
+  [
+    "E",
+    "Hybrid (A + aliases)",
+    "<code>/ff3b30-f94144.svg</code>",
+    "Canonical A, 301 the others. HTML at the extension-less URL.",
+  ],
 ];
 
 const html = `<!doctype html>
