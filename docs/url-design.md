@@ -68,7 +68,7 @@ aliases:    /p/{hex}/{hex}.svg      → 301
 
 - 拡張子なし = HTML ページ、`.svg` = SVG、`.png` = PNG。
 - 画像 URL をそのまま人に渡せる。ページ側の「画像 URL」コピーも同じ形。
-- 301 は `Cache-Control: public, max-age=86400`。canonical は immutable。
+- 301 は `Cache-Control: public, max-age=86400`（現状はヘッダー未設定）。canonical は `public, max-age=300` + 弱い ETag。
 
 ## ルート一覧（最終形の提案）
 
@@ -110,14 +110,19 @@ aliases:    /p/{hex}/{hex}.svg      → 301
 
 ## キャッシュ
 
-URL が内容を完全に決めるので:
+URL が内容を完全に決めるが、レイアウトやフォントはデプロイで変わる。`immutable` は付けず、短い TTL と ETag で再検証する:
 
 ```
-Cache-Control: public, max-age=31536000, immutable
+Cache-Control: public, max-age=300
+ETag: W/"..."
 ```
 
-- クエリも含めてキーにする（Cloudflare の Cache API はクエリ込み）。
-- PNG は生成コストがあるので Cache API に保存。`cf: { cacheEverything: true }` は使わず、Worker 内で明示的に。
+- 5 分経過後の再取得は `If-None-Match` で 304 になり、本文は返らない。
+- 以前は `immutable`（1 年）を付けていたが、変更が最大 1 年残るためやめた。
+- ETag は弱い ETag。Cloudflare が圧縮するため、圧縮前のバイト列に対する強い ETag は表現と一致しなくなる。
+- クエリも含めてキーにする（Cloudflare の Cache API はクエリ込み）。`?layout=strip` のような既定値付き URL は現状そのまま別キーになる（正規化は未実装）。
+- エッジに保存する Cache API は未実装。現状はヘッダーだけなので、304 判定のためレンダリング自体は走る。
+- PNG は生成コストがあるので、実装時に Cache API に保存する。`cf: { cacheEverything: true }` は使わず、Worker 内で明示的に。
 - 301 は 1 日。`Vary: Accept` は拡張子で分けているので不要。
 
 ## セキュリティ
@@ -153,7 +158,7 @@ Cache-Control: public, max-age=31536000, immutable
 
 ## 実装状況（v0）
 
-- 実装済み: ハイフン + 拡張子、HTML、`layout` 6 種、ランダム、カンマ / `%23` の 301 正規化、エラー SVG、`w`/`h`（16–4096、4MP 上限。正方形・縦長ではレイアウトが行組みに切り替わる）、単色時の `accent`（既定は濃いトーン）、`/llms.txt`。
+- 実装済み: ハイフン + 拡張子、HTML、`layout` 6 種、ランダム、カンマ / `%23` の 301 正規化、エラー SVG、`w`/`h`（16–4096、4MP 上限。正方形・縦長ではレイアウトが行組みに切り替わる）、単色時の `accent`（既定は濃いトーン）、`/llms.txt`、`max-age=300` + 弱い ETag による 304 再検証。
 - 未実装: PNG、`.json`、`theme`、`labels`、`title`、`/p/` エイリアス。
 
 ## 決めること

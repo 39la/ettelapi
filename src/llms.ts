@@ -15,7 +15,7 @@ export function renderLlmsTxt(origin: string): string {
 
 > Color palettes as images. Put 1–${MAX_COLORS} hex colors in the URL path and get an SVG image (default 1200×630, resizable) or an HTML page with swatches, RGB values, contrast ratios, and copy-paste snippets.
 
-The image is a pure function of the URL, so it is served with \`Cache-Control: immutable\`.
+The image is a pure function of the URL, so it is served with \`Cache-Control: public, max-age=300\` and a weak \`ETag\`; unchanged requests revalidate as 304.
 
 ## Routes
 

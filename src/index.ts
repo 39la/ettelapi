@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { etag } from "hono/etag";
 import { secureHeaders } from "hono/secure-headers";
 import { randomPalette, parseColors, parseAccent, slugOf } from "./colors";
 import { DEFAULT_LAYOUT, isLayout, renderErrorSvg, renderSvg } from "./layouts";
@@ -37,20 +38,26 @@ app.use((c, next) =>
   c.req.path.toLowerCase().endsWith(".svg") ? svgSecurity(c, next) : htmlSecurity(c, next),
 );
 
-const SVG_HEADERS = (immutable: boolean) => ({
+// Revalidate rather than promise a year of immutability: layouts and fonts change.
+const CACHE_TTL_SECONDS = 300;
+const PUBLIC_CACHE = `public, max-age=${CACHE_TTL_SECONDS}`;
+
+app.use(etag({ weak: true }));
+
+const SVG_HEADERS = (cache: "public" | "none" = "public") => ({
   "Content-Type": "image/svg+xml; charset=utf-8",
-  "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-store",
+  "Cache-Control": cache === "public" ? PUBLIC_CACHE : "no-store",
 });
 
 const HTML_HEADERS = (cache: "public" | "none" = "public") => ({
   "Content-Type": "text/html; charset=utf-8",
-  "Cache-Control": cache === "public" ? "public, max-age=300" : "no-store",
+  "Cache-Control": cache === "public" ? PUBLIC_CACHE : "no-store",
 });
 
 const svgError = (message: string, status = 400) =>
   new Response(renderErrorSvg(message), {
     status,
-    headers: SVG_HEADERS(false),
+    headers: SVG_HEADERS("none"),
   });
 
 const htmlError = (status: number, message: string) =>
@@ -64,12 +71,18 @@ const requestInfo = (url: string) => {
   return { origin: parsed.origin, site: parsed.host, search: parsed.search };
 };
 
+const noStoreRedirect = (location: string) =>
+  new Response(null, {
+    status: 302,
+    headers: { Location: location, "Cache-Control": "no-store" },
+  });
+
 app.get("/healthz", (c) => c.text("ok"));
 app.get("/favicon.ico", (c) => c.body(null, 204));
 app.get("/llms.txt", (c) =>
   c.text(renderLlmsTxt(requestInfo(c.req.url).origin), 200, {
     "Content-Type": "text/plain; charset=utf-8",
-    "Cache-Control": "public, max-age=300",
+    "Cache-Control": PUBLIC_CACHE,
   }),
 );
 
@@ -86,17 +99,11 @@ app.get("/", (c) => {
         HTML_HEADERS("none"),
       );
     }
-    return c.redirect("/" + slugOf(parsed.colors), 302);
+    return noStoreRedirect("/" + slugOf(parsed.colors));
   }
 
   return c.html(renderLanding({ origin }), 200, HTML_HEADERS());
 });
-
-const noStoreRedirect = (location: string) =>
-  new Response(null, {
-    status: 302,
-    headers: { Location: location, "Cache-Control": "no-store" },
-  });
 
 app.get("/random", () => noStoreRedirect("/" + slugOf(randomPalette())));
 
@@ -164,7 +171,7 @@ app.get("/:slug", (c) => {
       renderSvg(colors, layoutParam, { site, width: size.w, height: size.h, accent }),
       {
         status: 200,
-        headers: SVG_HEADERS(true),
+        headers: SVG_HEADERS(),
       },
     );
   }

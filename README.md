@@ -17,7 +17,7 @@ Live: <https://ettelapi.saqula.workers.dev>
 
 | Path            | Response                                                     |
 | --------------- | ------------------------------------------------------------ |
-| `/{colors}.svg` | SVG (default 1200 × 630, `immutable` cache)                  |
+| `/{colors}.svg` | SVG (default 1200 × 630, 5-minute cache)                     |
 | `/{colors}`     | HTML page with swatches, CSS/Tailwind/Markdown/HTML snippets |
 | `/random`       | 302 to a random palette page                                 |
 | `/random.svg`   | 302 to a random palette image                                |
@@ -31,6 +31,7 @@ Live: <https://ettelapi.saqula.workers.dev>
 - `?accent=` overrides the label accent for single-color palettes. Without it, labels use a deep tone of the color. Multi-color palettes keep black/white labels.
 - `scale` only works with a single color (returns 400 otherwise).
 - Invalid colors/layouts return a **400 SVG** for image URLs (a small error card) and an HTML error page otherwise.
+- Cacheable responses use `Cache-Control: public, max-age=300` and a weak `ETag`; unchanged responses revalidate as **304**. Errors and random redirects are `no-store`.
 
 ## Layouts
 

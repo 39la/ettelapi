@@ -8,7 +8,8 @@ describe("image route", () => {
     const res = await get("/f94144-f3722c.svg");
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("image/svg+xml");
-    expect(res.headers.get("cache-control")).toContain("immutable");
+    expect(res.headers.get("cache-control")).toBe("public, max-age=300");
+    expect(res.headers.get("etag")).toMatch(/^W\/"[0-9a-f]{40}"$/);
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     expect(res.headers.get("cross-origin-resource-policy")).toBe("cross-origin");
     expect(res.headers.get("content-security-policy")).toBe(
@@ -17,6 +18,20 @@ describe("image route", () => {
     const body = await res.text();
     expect(body).toContain('fill="#f94144"');
     expect(body).toContain('fill="#f3722c"');
+  });
+
+  test("revalidates unchanged images with 304", async () => {
+    const first = await get("/f94144-f3722c.svg");
+    const tag = first.headers.get("etag");
+    expect(tag).not.toBeNull();
+
+    const second = await app.request("/f94144-f3722c.svg", {
+      headers: { "If-None-Match": tag! },
+    });
+    expect(second.status).toBe(304);
+    expect(await second.text()).toBe("");
+    expect(second.headers.get("etag")).toBe(tag);
+    expect(second.headers.get("cache-control")).toBe("public, max-age=300");
   });
 
   test("defaults to bands", async () => {
@@ -43,6 +58,7 @@ describe("image route", () => {
     const badColor = await get("/nope.svg");
     expect(badColor.status).toBe(400);
     expect(badColor.headers.get("cache-control")).toBe("no-store");
+    expect(badColor.headers.get("etag")).toBeNull();
 
     const badLayout = await get("/ff3b30.svg?layout=nope");
     expect(badLayout.status).toBe(400);
@@ -77,6 +93,19 @@ describe("page route", () => {
     expect(body).toContain("/f94144-f3722c.svg?layout=cards");
   });
 
+  test("revalidates unchanged pages with 304", async () => {
+    const first = await get("/f94144-f3722c");
+    const tag = first.headers.get("etag");
+    expect(tag).not.toBeNull();
+
+    const second = await app.request("/f94144-f3722c", {
+      headers: { "If-None-Match": tag! },
+    });
+    expect(second.status).toBe(304);
+    expect(second.headers.get("etag")).toBe(tag);
+    expect(second.headers.get("cache-control")).toBe("public, max-age=300");
+  });
+
   test("lands on the form page", async () => {
     const res = await get("/");
     expect(res.status).toBe(200);
@@ -99,6 +128,7 @@ describe("page route", () => {
     const res = await get("/?colors=%23ff3b30%2C%20%2300ff00");
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toBe("/ff3b30-00ff00");
+    expect(res.headers.get("cache-control")).toBe("no-store");
   });
 
   test("shows form errors instead of redirecting", async () => {
