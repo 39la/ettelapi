@@ -7,7 +7,7 @@ describe("renderSvg", () => {
   for (const layout of LAYOUTS) {
     test(`renders ${layout.id}`, () => {
       const colors = layout.id === "scale" ? ["#ff3b30"] : COLORS;
-      const svg = renderSvg(colors, layout.id, { site: "palette.example" });
+      const svg = renderSvg(colors, layout.id, { site: "ettelapi.example" });
       expect(svg.startsWith("<svg")).toBe(true);
       expect(svg).toContain('viewBox="0 0 1200 630"');
       expect(svg).toContain("<title>");

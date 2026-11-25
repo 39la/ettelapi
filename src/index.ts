@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
-import { randomPalette, parseColors, slugOf } from "./colors";
+import { randomPalette, parseColors, parseAccent, slugOf } from "./colors";
 import { DEFAULT_LAYOUT, isLayout, renderErrorSvg, renderSvg } from "./layouts";
+import { renderLlmsTxt } from "./llms";
+import { parseSize } from "./size";
 import { renderErrorPage, renderLanding, renderPalettePage } from "./views";
 
 const app = new Hono();
@@ -11,28 +13,24 @@ const SECURITY_OPTIONS = {
   referrerPolicy: "strict-origin-when-cross-origin",
 } as const;
 
-const HTML_CSP = {
-  defaultSrc: ["'self'"],
-  imgSrc: ["'self'", "data:"],
-  styleSrc: ["'unsafe-inline'"],
-  scriptSrc: ["'unsafe-inline'"],
-  baseUri: ["'none'"],
-  formAction: ["'self'"],
-};
-
-const SVG_CSP = {
-  defaultSrc: ["'none'"],
-  styleSrc: ["'unsafe-inline'"],
-};
-
 const htmlSecurity = secureHeaders({
   ...SECURITY_OPTIONS,
-  contentSecurityPolicy: HTML_CSP,
+  contentSecurityPolicy: {
+    defaultSrc: ["'self'"],
+    imgSrc: ["'self'", "data:"],
+    styleSrc: ["'unsafe-inline'"],
+    scriptSrc: ["'unsafe-inline'"],
+    baseUri: ["'none'"],
+    formAction: ["'self'"],
+  },
 });
 
 const svgSecurity = secureHeaders({
   ...SECURITY_OPTIONS,
-  contentSecurityPolicy: SVG_CSP,
+  contentSecurityPolicy: {
+    defaultSrc: ["'none'"],
+    styleSrc: ["'unsafe-inline'"],
+  },
 });
 
 app.use((c, next) =>
@@ -68,6 +66,12 @@ const requestInfo = (url: string) => {
 
 app.get("/healthz", (c) => c.text("ok"));
 app.get("/favicon.ico", (c) => c.body(null, 204));
+app.get("/llms.txt", (c) =>
+  c.text(renderLlmsTxt(requestInfo(c.req.url).origin), 200, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "public, max-age=300",
+  }),
+);
 
 app.get("/", (c) => {
   const input = c.req.query("colors");
@@ -135,14 +139,48 @@ app.get("/:slug", (c) => {
     return isSvg ? svgError(message) : htmlError(400, message);
   }
 
-  if (isSvg) {
-    return new Response(renderSvg(colors, layoutParam, { site }), {
-      status: 200,
-      headers: SVG_HEADERS(true),
-    });
+  const accentRaw = c.req.query("accent");
+  let accent: string | undefined;
+  if (accentRaw !== undefined && accentRaw.trim() !== "") {
+    if (colors.length !== 1) {
+      const message = "accent only works with one color.";
+      return isSvg ? svgError(message) : htmlError(400, message);
+    }
+    const parsedAccent = parseAccent(accentRaw);
+    if (!parsedAccent.ok) {
+      return isSvg ? svgError(parsedAccent.message) : htmlError(400, parsedAccent.message);
+    }
+    accent = parsedAccent.color;
   }
 
-  return c.html(renderPalettePage({ colors, layout: layoutParam, origin }), 200, HTML_HEADERS());
+  const sizeResult = parseSize(c.req.query("w"), c.req.query("h"));
+  if (!sizeResult.ok) {
+    return isSvg ? svgError(sizeResult.message) : htmlError(400, sizeResult.message);
+  }
+  const { size } = sizeResult;
+
+  if (isSvg) {
+    return new Response(
+      renderSvg(colors, layoutParam, { site, width: size.w, height: size.h, accent }),
+      {
+        status: 200,
+        headers: SVG_HEADERS(true),
+      },
+    );
+  }
+
+  return c.html(
+    renderPalettePage({
+      colors,
+      layout: layoutParam,
+      origin,
+      width: size.w,
+      height: size.h,
+      accent,
+    }),
+    200,
+    HTML_HEADERS(),
+  );
 });
 
 app.notFound((c) => {

@@ -23,7 +23,7 @@ describe("image route", () => {
     const plain = await (await get("/ff3b30.svg")).text();
     const explicit = await (await get("/ff3b30.svg?layout=strip")).text();
     expect(plain).toBe(explicit);
-    expect(plain).toContain("PALETTE / 01");
+    expect(plain).toContain("ETTELAPI / 01");
   });
 
   test("honours layout=cards", async () => {
@@ -126,5 +126,76 @@ describe("page route", () => {
 
     const png = await get("/ff3b30.png");
     expect(png.status).toBe(404);
+  });
+});
+
+describe("size parameters", () => {
+  test("renders the requested size", async () => {
+    const res = await get("/f94144-f3722c.svg?w=1080&h=1080");
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toContain('width="1080" height="1080" viewBox="0 0 1080 1080"');
+    expect(body).toContain('fill="#f94144"');
+  });
+
+  test("adapts tall frames", async () => {
+    const wide = await (await get("/f94144-f3722c.svg")).text();
+    const tall = await (await get("/f94144-f3722c.svg?w=800&h=1200")).text();
+    expect(tall).toContain('viewBox="0 0 800 1200"');
+    expect(tall).not.toBe(wide);
+  });
+
+  test("rejects non-numeric sizes", async () => {
+    const res = await get("/ff3b30.svg?w=wide");
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain("whole number");
+  });
+
+  test("page links keep the size", async () => {
+    const res = await get("/f94144-f3722c?w=1080&h=1080&layout=cards");
+    const body = await res.text();
+    expect(body).toContain("/f94144-f3722c.svg?layout=cards&amp;w=1080&amp;h=1080");
+    expect(body).toContain("1080 × 1080");
+    expect(body).toContain('property="og:image:width" content="1080"');
+  });
+});
+
+describe("llms.txt", () => {
+  test("describes the service", async () => {
+    const res = await get("/llms.txt");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/plain");
+    const body = await res.text();
+    expect(body).toContain("# ettelapi");
+    expect(body).toContain("/{colors}.svg");
+    expect(body).toContain("http://localhost/llms.txt");
+    expect(body).toContain("layout");
+  });
+});
+
+describe("accent color", () => {
+  test("accepts an accent for one color", async () => {
+    const plain = await (await get("/ff3b30.svg?layout=cards")).text();
+    const tinted = await (await get("/ff3b30.svg?layout=cards&accent=00ff00")).text();
+    expect(tinted).not.toBe(plain);
+    expect(tinted).toContain("#008c00");
+  });
+
+  test("rejects accent for multiple colors and bad hex", async () => {
+    const multi = await get("/ff3b30-00ff00.svg?accent=00ff00");
+    expect(multi.status).toBe(400);
+    expect(await multi.text()).toContain("only works with one color");
+
+    const bad = await get("/ff3b30.svg?accent=nope");
+    expect(bad.status).toBe(400);
+    expect(await bad.text()).toContain("not a hex color");
+  });
+
+  test("page links keep the accent", async () => {
+    const res = await get("/ff3b30?layout=cards&accent=00ff00");
+    const body = await res.text();
+    expect(body).toContain("/ff3b30.svg?layout=cards&amp;accent=00ff00");
+    expect(body).toContain("Accent");
+    expect(body).toContain("#00ff00");
   });
 });

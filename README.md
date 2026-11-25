@@ -1,27 +1,34 @@
-# palette
+# ettelapi
 
 URL にカラーコードを並べると SVG 画像と HTML ページを返す、Cloudflare Workers + Hono のサービス。
+
+Live: <https://ettelapi.saqula.workers.dev>
 
 ```
 /f94144-f3722c-f8961e-f9c74f-90be6d-577590.svg   image
 /f94144-f3722c-f8961e-f9c74f-90be6d-577590       page
 /f94144-f3722c?layout=cards                       same colors, cards layout
 /ff3b30?layout=scale                              tints & shades
+/ff3b30.svg?w=1080&h=1080                        square image
+/ff3b30?accent=1d4ed8                             tinted labels (single color)
 ```
 
 ## Routes
 
 | Path            | Response                                                     |
 | --------------- | ------------------------------------------------------------ |
-| `/{colors}.svg` | SVG (1200 × 630, `immutable` cache)                          |
+| `/{colors}.svg` | SVG (default 1200 × 630, `immutable` cache)                  |
 | `/{colors}`     | HTML page with swatches, CSS/Tailwind/Markdown/HTML snippets |
 | `/random`       | 302 to a random palette page                                 |
 | `/random.svg`   | 302 to a random palette image                                |
 | `/healthz`      | `ok`                                                         |
+| `/llms.txt`     | plain-text brief for LLM crawlers                            |
 
 - `{colors}`: 1–12 hex colors, 3 or 6 digits, joined with `-`. Case-insensitive, `#` optional.
 - Commas and a leading `%23` are accepted and 301'd to the hyphen form.
 - `?layout=` is `strip` (default), `cards`, `feature`, `mosaic`, `blobs`, or `scale`.
+- `?w=` and `?h=` resize the image. Default 1200 × 630; each side is clamped to 16–4096 and the area to 4 MP.
+- `?accent=` overrides the label accent for single-color palettes. Without it, labels use a deep tone of the color. Multi-color palettes keep black/white labels.
 - `scale` only works with a single color (returns 400 otherwise).
 - Invalid colors/layouts return a **400 SVG** for image URLs (a small error card) and an HTML error page otherwise.
 
@@ -47,42 +54,7 @@ bun test
 bun run check      # typecheck + lint + format check + tests
 ```
 
-The project uses the new [`cf` CLI](https://developers.cloudflare.com/cf/), not Wrangler directly. `cf` is pinned as a dev dependency, so the global `cf` command runs the project's version.
-
-```sh
-cf --version
-cf auth whoami
-cf auth login      # only needed if the token expires
-```
-
-The account is pinned in `cloudflare.config.ts`. Production deploy is intentionally not run yet:
 
 ```sh
 bun run deploy     # cf deploy (production)
 ```
-
-Files:
-
-- `src/index.ts` — Hono routes, validation, headers.
-- `src/colors.ts` — parsing, RGB/luminance/contrast, random palettes.
-- `src/layouts/` — one file per image layout (`strip`, `cards`, `feature`, `mosaic`, `blobs`, `scale`), plus `shared.ts` for the SVG primitives and `error.ts`.
-- `src/layouts/index.ts` — layout registry, `renderSvg()`.
-- `src/views/` — Hono JSX views (document shell, palette page, landing, error page).
-- `src/escape.ts` — XML/HTML escaping for the SVG generators.
-- `src/styles.css` — layered CSS with design tokens; imported as text.
-- `cloudflare.config.ts` — cf project config (account, worker name, entrypoint).
-- `wrangler.config.ts` — bundler settings only; the `Text` rule inlines `styles.css` into the Worker.
-- `test/` — parser, renderer, and route tests.
-
-## Notes
-
-- `cf` 1.0 is in release candidate. For a JavaScript Worker it delegates `dev`/`build`/`deploy` to Wrangler (esbuild), so Wrangler stays installed under the hood; the old `wrangler.jsonc` has been removed.
-- `src/styles.css` is a real stylesheet, formatted by oxfmt, and imported as text via the `Text` module rule in `wrangler.config.ts`. It uses `@layer` and design tokens rather than raw pixel values.
-- HTML is rendered with Hono JSX (`hono/jsx`); the layout of the JSX runtime is set in `tsconfig.json`.
-- `cf` runs on Node, not Bun. The npm scripts invoke the `cf` binary directly, so this is handled.
-- **SVG only for now.** `og:image` points at the SVG; most crawlers (including X) won't render it. PNG via `@resvg/resvg-wasm` is the next step, plus a bundled font file.
-- Fonts use the system stack. For a consistent image across machines, embed a subset of Inter later.
-- Images are pure functions of the URL, hence `Cache-Control: immutable`; errors are `no-store`.
-- Security headers come from Hono's `secureHeaders` middleware. SVG gets a stricter CSP (`default-src 'none'`) than HTML, and images use `Cross-Origin-Resource-Policy: cross-origin` so they can be embedded elsewhere.
-- No database, KV, or R2. Random palettes are stateless.
-- Design exploration lives in [`mockups/`](mockups/) (`node mockups/generate.mjs`, then open `mockups/index.html`). URL rationale is in [`docs/url-design.md`](docs/url-design.md).

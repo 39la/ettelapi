@@ -28,10 +28,20 @@ export interface ShellProps {
   description: string;
   canonical?: string;
   ogImage?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
   children: Child;
 }
 
-export const Shell = ({ title, description, canonical, ogImage, children }: ShellProps) => (
+export const Shell = ({
+  title,
+  description,
+  canonical,
+  ogImage,
+  ogImageWidth = 1200,
+  ogImageHeight = 630,
+  children,
+}: ShellProps) => (
   <html lang="en">
     <head>
       <meta charset="utf-8" />
@@ -44,8 +54,8 @@ export const Shell = ({ title, description, canonical, ogImage, children }: Shel
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
-      {ogImage ? <meta property="og:image:width" content="1200" /> : null}
-      {ogImage ? <meta property="og:image:height" content="630" /> : null}
+      {ogImage ? <meta property="og:image:width" content={String(ogImageWidth)} /> : null}
+      {ogImage ? <meta property="og:image:height" content={String(ogImageHeight)} /> : null}
       <meta name="twitter:card" content="summary_large_image" />
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
     </head>
@@ -53,7 +63,7 @@ export const Shell = ({ title, description, canonical, ogImage, children }: Shel
       <header class="nav wrap">
         <a class="brand" href="/">
           <i aria-hidden="true" />
-          palette
+          ettelapi
         </a>
         <nav>
           <a href="/#layouts">Layouts</a>
@@ -67,8 +77,7 @@ export const Shell = ({ title, description, canonical, ogImage, children }: Shel
       <main class="wrap">
         {children}
         <footer class="site">
-          <span>SVG rendered on the fly. No accounts, no tracking.</span>
-          <span>Free to use — a link back is appreciated.</span>
+          <span>ettelapi by saqu.la</span>
         </footer>
       </main>
       <div class="toast" id="toast">

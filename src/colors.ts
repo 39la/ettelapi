@@ -35,6 +35,17 @@ export function parseColors(input: string): ParseResult {
   return { ok: true, colors };
 }
 
+export type AccentResult = { ok: true; color: string } | { ok: false; message: string };
+
+/** Parses a single `?accent=` value. */
+export function parseAccent(input: string): AccentResult {
+  const token = input.trim().replace(/^#/, "");
+  if (!HEX.test(token)) {
+    return { ok: false, message: `"${token}" is not a hex color. Use 3 or 6 hex digits.` };
+  }
+  return { ok: true, color: normalizeHex(token) };
+}
+
 export function normalizeHex(input: string): string {
   const hex = input.replace(/^#/, "").toLowerCase();
   const full =
@@ -110,6 +121,20 @@ export function inkColor(hex: string): string {
 export function contrastRatio(a: string, b: string): number {
   const [hi, lo] = [relLuminance(a), relLuminance(b)].sort((x, y) => y - x) as [number, number];
   return (hi + 0.05) / (lo + 0.05);
+}
+
+/** A deep or light tone of `seed` that stays readable on `background`. */
+export function accentInk(background: string, seed: string): string {
+  const deep = mix(seed, "#000000", 0.45);
+  const bright = mix(seed, "#ffffff", 0.7);
+  return contrastRatio(deep, background) >= contrastRatio(bright, background) ? deep : bright;
+}
+
+/** Label ink for a palette: tinted with the color when it has only one, else black/white. */
+export function inkFor(colors: string[], accent?: string): (background: string) => string {
+  const single = colors.length === 1;
+  const seed = accent ?? colors[0] ?? "#111111";
+  return (background) => (single ? accentInk(background, seed) : contrastColor(background));
 }
 
 export function randomPalette(count = 5): string[] {

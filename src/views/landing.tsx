@@ -38,7 +38,7 @@ export function renderLanding({ origin, error, value = "" }: LandingOptions): st
   });
 
   return renderDocument({
-    title: "palette — color palettes as images",
+    title: "ettelapi — color palettes as images",
     description: "Put hex colors in the URL and get an SVG palette image plus a shareable page.",
     canonical: origin + "/",
     ogImage: origin + palettePath(SAMPLE, DEFAULT_LAYOUT, ".svg"),
@@ -96,8 +96,8 @@ export function renderLanding({ origin, error, value = "" }: LandingOptions): st
               <h3>Image</h3>
               <code>{"/{colors}.svg"}</code>
               <p>
-                1200 × 630 SVG. Cache-friendly and infinitely sharp. Append{" "}
-                <code>?layout=cards</code> for a different design.
+                1200 × 630 SVG by default — append <code>?w=1080&amp;h=1080</code> for another size,
+                or <code>?layout=cards</code> for a different design.
               </p>
             </div>
             <div class="panel">
@@ -107,7 +107,8 @@ export function renderLanding({ origin, error, value = "" }: LandingOptions): st
             </div>
           </div>
           <p class="hint">
-            Colors are 3 or 6 hex digits joined with hyphens, up to 12. Example:{" "}
+            Colors are 3 or 6 hex digits joined with hyphens, up to 12. Size with <code>?w=</code>{" "}
+            and <code>?h=</code>. Example:{" "}
             <a href={`/${sampleSlug}`}>
               <code>/{sampleSlug}</code>
             </a>

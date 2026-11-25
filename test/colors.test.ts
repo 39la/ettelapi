@@ -1,11 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
+  accentInk,
   contrastColor,
   contrastRatio,
+  inkFor,
   labelOf,
   MAX_COLORS,
   mix,
   normalizeHex,
+  parseAccent,
   parseColors,
   randomPalette,
   rgbOf,
@@ -76,5 +79,39 @@ describe("color helpers", () => {
     const colors = randomPalette(5);
     expect(colors).toHaveLength(5);
     for (const c of colors) expect(c).toMatch(/^#[0-9a-f]{6}$/);
+  });
+});
+
+describe("accent", () => {
+  test("parseAccent accepts 3/6 digits and a leading #", () => {
+    expect(parseAccent("0f0")).toEqual({ ok: true, color: "#00ff00" });
+    expect(parseAccent("#FF3B30")).toEqual({ ok: true, color: "#ff3b30" });
+  });
+
+  test("parseAccent rejects junk and lists", () => {
+    expect(parseAccent("nope").ok).toBe(false);
+    expect(parseAccent("ff3b30-00ff00").ok).toBe(false);
+    expect(parseAccent("").ok).toBe(false);
+  });
+
+  test("accentInk stays tinted and readable", () => {
+    const onPaper = accentInk("#F4F3EF", "#ff3b30");
+    expect(onPaper).not.toBe("#111111");
+    expect(contrastRatio(onPaper, "#F4F3EF")).toBeGreaterThan(4.5);
+
+    const onDark = accentInk("#101012", "#ff3b30");
+    expect(onDark).not.toBe("#ffffff");
+    expect(contrastRatio(onDark, "#101012")).toBeGreaterThan(4.5);
+  });
+
+  test("inkFor keeps black/white for multiple colors", () => {
+    const ink = inkFor(["#ff3b30", "#00ff00"]);
+    expect(ink("#F4F3EF")).toBe("#111111");
+    expect(ink("#101012")).toBe("#ffffff");
+  });
+
+  test("inkFor tints single-color palettes", () => {
+    expect(inkFor(["#1d4ed8"])("#F4F3EF")).not.toBe("#111111");
+    expect(inkFor(["#ff3b30"])("#F4F3EF")).not.toBe("#111111");
   });
 });

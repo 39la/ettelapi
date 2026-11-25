@@ -2,7 +2,7 @@ import { renderDocument } from "./document";
 
 export function renderErrorPage(status: number, message: string): string {
   return renderDocument({
-    title: `${status} — palette`,
+    title: `${status} — ettelapi`,
     description: message,
     children: (
       <>

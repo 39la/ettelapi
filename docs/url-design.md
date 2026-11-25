@@ -96,8 +96,9 @@ aliases:    /p/{hex}/{hex}.svg      → 301
 | `theme`     | `light` `dark`                                     | layout ごとに固定   |
 | `title`     | 任意テキスト（80 文字まで、XML エスケープ）        | なし                |
 | `watermark` | `0` `1`                                            | `1`（URL を小さく） |
+| `accent`    | hex color（単色時のみ）                            | 自動（色の濃いトーン） |
 
-`layout=scale` は 1 色のときだけ有効（複数色なら 400）。`layout` 省略時は常に `strip`。
+`layout=scale` は 1 色のときだけ有効（複数色なら 400）。`layout` 省略時は常に `strip`。`accent` は 1 色のときだけ有効で、ラベルの色を上書きする（複数色なら 400）。省略時はその色を暗くしたトーンを背景とのコントラストに応じて使う。
 
 サイズは縦横比でレイアウトを切り替えるのではなく、`viewBox` を固定して `preserveAspectRatio` で伸ばさない方が安全。正方形が欲しくなったら `w=h=1080` を渡し、レイアウト側で比率を見て調整する。
 
@@ -152,8 +153,8 @@ Cache-Control: public, max-age=31536000, immutable
 
 ## 実装状況（v0）
 
-- 実装済み: ハイフン + 拡張子、HTML、`layout` 6 種、ランダム、カンマ / `%23` の 301 正規化、エラー SVG。
-- 未実装: PNG、`.json`、`w`/`h`、`theme`、`labels`、`title`、`/p/` エイリアス。
+- 実装済み: ハイフン + 拡張子、HTML、`layout` 6 種、ランダム、カンマ / `%23` の 301 正規化、エラー SVG、`w`/`h`（16–4096、4MP 上限。正方形・縦長ではレイアウトが行組みに切り替わる）、単色時の `accent`（既定は濃いトーン）、`/llms.txt`。
+- 未実装: PNG、`.json`、`theme`、`labels`、`title`、`/p/` エイリアス。
 
 ## 決めること
 

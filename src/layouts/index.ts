@@ -3,6 +3,7 @@ import { cards } from "./cards";
 import { feature } from "./feature";
 import { mosaic } from "./mosaic";
 import { scale } from "./scale";
+import { CANVAS_H, CANVAS_W, type Canvas } from "./shared";
 import { strip } from "./strip";
 
 export type Layout = "strip" | "cards" | "feature" | "mosaic" | "blobs" | "scale";
@@ -60,13 +61,19 @@ export const isLayout = (value: string): value is Layout => LAYOUTS.some((l) => 
 export const layoutInfo = (layout: Layout): LayoutInfo => LAYOUTS.find((l) => l.id === layout)!;
 
 export { renderErrorSvg } from "./error";
+export { CANVAS_H, CANVAS_W, DEFAULT_CANVAS } from "./shared";
+export type { Canvas } from "./shared";
 
 interface RenderOptions {
-  /** Hostname shown in the small watermark, e.g. `palette.example`. */
+  /** Hostname shown in the small watermark, e.g. `ettelapi.example`. */
   site: string;
+  width?: number;
+  height?: number;
+  /** Single-color palettes only: seed for the tinted label ink. */
+  accent?: string;
 }
 
-type LayoutRenderer = (colors: string[], site: string) => string;
+type LayoutRenderer = (colors: string[], site: string, canvas: Canvas, accent?: string) => string;
 
 const RENDERERS: Record<Layout, LayoutRenderer> = {
   strip,
@@ -82,5 +89,9 @@ export function renderSvg(colors: string[], layout: Layout, options: RenderOptio
   if (layout === "scale" && colors.length !== 1) {
     throw new Error("layout=scale only works with one color");
   }
-  return RENDERERS[layout](colors, options.site || "palette");
+  const canvas = {
+    w: options.width ?? CANVAS_W,
+    h: options.height ?? CANVAS_H,
+  };
+  return RENDERERS[layout](colors, options.site || "ettelapi", canvas, options.accent);
 }

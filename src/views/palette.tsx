@@ -22,17 +22,29 @@ export interface PalettePageOptions {
   colors: string[];
   layout: Layout;
   origin: string;
+  width: number;
+  height: number;
+  accent?: string;
 }
 
-export function renderPalettePage({ colors, layout, origin }: PalettePageOptions): string {
+export function renderPalettePage({
+  colors,
+  layout,
+  origin,
+  width,
+  height,
+  accent,
+}: PalettePageOptions): string {
   const count = colors.length;
   const slug = slugOf(colors);
   const hexes = colors.map((c) => c.toUpperCase());
-  const pagePath = palettePath(colors, layout, "");
-  const svgPath = palettePath(colors, layout, ".svg");
+  const size = { w: width, h: height };
+  const dims = `${width} × ${height}`;
+  const pagePath = palettePath(colors, layout, "", size, accent);
+  const svgPath = palettePath(colors, layout, ".svg", size, accent);
   const pageUrl = origin + pagePath;
   const svgUrl = origin + svgPath;
-  const title = count === 1 ? `${hexes[0]} — palette` : `${count}-color palette — palette`;
+  const title = count === 1 ? `${hexes[0]} — ettelapi` : `${count}-color palette — ettelapi`;
   const description = hexes.join(" ");
   const layoutName = layoutInfo(layout).name;
 
@@ -48,7 +60,7 @@ export function renderPalettePage({ colors, layout, origin }: PalettePageOptions
     return (
       <a
         class={current ? "on" : undefined}
-        href={palettePath(colors, item.id, "") + "#image"}
+        href={palettePath(colors, item.id, "", size, accent) + "#image"}
         aria-current={current ? "page" : undefined}
       >
         {item.name}
@@ -83,13 +95,15 @@ export function renderPalettePage({ colors, layout, origin }: PalettePageOptions
     .map((c, i) => `  --color-palette-${i + 1}: ${c};`)
     .join("\n")}\n}`;
   const markdown = `![${count}-color palette](${svgUrl})`;
-  const embed = `<img src="${svgUrl}" alt="${count}-color palette" width="1200" height="630">`;
+  const embed = `<img src="${svgUrl}" alt="${count}-color palette" width="${width}" height="${height}">`;
 
   return renderDocument({
     title,
     description,
     canonical: pageUrl,
     ogImage: svgUrl,
+    ogImageWidth: width,
+    ogImageHeight: height,
     children: (
       <>
         <div class="subbar">
@@ -101,7 +115,7 @@ export function renderPalettePage({ colors, layout, origin }: PalettePageOptions
         <p class="kicker">
           <b>{count}-color palette</b>
           <span>·</span>
-          <span>1200 × 630</span>
+          <span>{dims}</span>
         </p>
         <h1>{hexes.join(" ")}</h1>
 
@@ -113,14 +127,14 @@ export function renderPalettePage({ colors, layout, origin }: PalettePageOptions
         </div>
 
         <div class="hero" id="image">
-          <img src={svgPath} alt={`${count}-color palette`} width="1200" height="630" />
+          <img src={svgPath} alt={`${count}-color palette`} width={width} height={height} />
         </div>
 
         <div class="toolbar">
           <div class="seg" aria-label="Image layout">
             {switcher}
           </div>
-          <span class="fmt">1200 × 630</span>
+          <span class="fmt">{dims}</span>
           <span class="spacer" />
           <a class="btn sec" href={svgPath} download={`${slug}.svg`}>
             Download SVG
@@ -148,12 +162,18 @@ export function renderPalettePage({ colors, layout, origin }: PalettePageOptions
               </div>
               <div>
                 <span>Size</span>
-                <code>1200 × 630</code>
+                <code>{dims}</code>
               </div>
               <div>
                 <span>Format</span>
                 <code>SVG</code>
               </div>
+              {accent ? (
+                <div>
+                  <span>Accent</span>
+                  <code>{accent}</code>
+                </div>
+              ) : null}
               <div>
                 <span>License</span>
                 <code>free to use</code>
